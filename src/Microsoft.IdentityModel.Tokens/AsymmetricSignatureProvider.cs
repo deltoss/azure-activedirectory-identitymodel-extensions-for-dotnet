@@ -208,6 +208,12 @@ namespace Microsoft.IdentityModel.Tokens
             var hashAlgoritmName = GetHashAlgorithmName(Algorithm);
             return new AsymmetricAdapter(Key, Algorithm, _cryptoProviderFactory.CreateHashAlgorithm(hashAlgoritmName), hashAlgoritmName, WillCreateSignatures);
         }
+
+        private AsymmetricAdapter AsymmetricAdapterFactory()
+        {
+            var hashAlgoritmName = GetHashAlgorithmName(Algorithm);
+            return new AsymmetricAdapter(Key, Algorithm, _cryptoProviderFactory.CreateHashAlgorithm(hashAlgoritmName), hashAlgoritmName, WillCreateSignatures);
+        }
 #endif
 
 #if NET45
@@ -228,6 +234,11 @@ namespace Microsoft.IdentityModel.Tokens
         }
 
         private AsymmetricAdapter CreateAsymmetricAdapter()
+        {
+            return new AsymmetricAdapter(Key, Algorithm, _cryptoProviderFactory.CreateHashAlgorithm(GetHashAlgorithmString(Algorithm)), WillCreateSignatures);
+        }
+
+        private AsymmetricAdapter AsymmetricAdapterFactory()
         {
             return new AsymmetricAdapter(Key, Algorithm, _cryptoProviderFactory.CreateHashAlgorithm(GetHashAlgorithmString(Algorithm)), WillCreateSignatures);
         }
