@@ -292,6 +292,7 @@ namespace Microsoft.IdentityModel.Tokens
 
             // This case required the user to get a RSA object by calling
             // X509Certificate2.GetRSAPrivateKey() OR X509Certificate2.GetRSAPublicKey()
+            // OR a RSA object was passed in.
             // This requires 4.6+ to be installed. If a dependent library is targeting 4.5, 4.5.1, 4.5.2 or 4.6
             // they will use Net45, but the type is RSACng.
             // The 'lightup' code will bind to the correct operators.
@@ -301,6 +302,7 @@ namespace Microsoft.IdentityModel.Tokens
                 _lightUpHashAlgorithmName = GetLightUpHashAlgorithmName();
                 SignatureFunction = Pkcs1SignData;
                 VerifyFunction = Pkcs1VerifyData;
+                RSA = rsa;
                 return;
             }
             else
