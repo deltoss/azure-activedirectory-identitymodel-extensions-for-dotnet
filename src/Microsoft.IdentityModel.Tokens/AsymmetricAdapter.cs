@@ -28,6 +28,7 @@
 using System;
 using System.Security.Cryptography;
 using Microsoft.IdentityModel.Logging;
+using System.Threading;
 
 #if NET45
 using System.Reflection;
@@ -349,7 +350,15 @@ namespace Microsoft.IdentityModel.Tokens
 #if DESKTOP
         internal byte[] SignWithRsaCryptoServiceProviderProxy(byte[] bytes)
         {
-            return RsaCryptoServiceProviderProxy.SignData(bytes, HashAlgorithm);
+            try
+            {
+                return RsaCryptoServiceProviderProxy.SignData(bytes, HashAlgorithm);
+            }
+            catch(System.Security.Cryptography.CryptographicException)
+            {
+                Thread.Sleep(10);
+                return RsaCryptoServiceProviderProxy.SignData(bytes, HashAlgorithm);
+            }
         }
 #endif
 

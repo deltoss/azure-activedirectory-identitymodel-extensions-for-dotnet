@@ -29,6 +29,7 @@
 
 using System;
 using System.Security.Cryptography;
+using System.Threading;
 using Microsoft.IdentityModel.Logging;
 
 namespace Microsoft.IdentityModel.Tokens
@@ -192,7 +193,15 @@ namespace Microsoft.IdentityModel.Tokens
             if (hash == null)
                 throw LogHelper.LogArgumentNullException(nameof(hash));
 
-            return _rsa.SignData(input, hash);
+            try
+            {
+                return _rsa.SignData(input, hash);
+            }
+            catch (System.Security.Cryptography.CryptographicException)
+            {
+                Thread.Sleep(10);
+                return _rsa.SignData(input, hash);
+            }
         }
 
         /// <summary>
@@ -259,5 +268,4 @@ namespace Microsoft.IdentityModel.Tokens
         }
     }
 }
-
 #endif
