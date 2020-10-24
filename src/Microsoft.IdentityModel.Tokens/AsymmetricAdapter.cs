@@ -343,46 +343,46 @@ namespace Microsoft.IdentityModel.Tokens
 #if NET461 || NETSTANDARD2_0
         private byte[] SignWithRsa(byte[] bytes)
         {
-            try
+//            try
             {
                 return RSA.SignHash(HashAlgorithm.ComputeHash(bytes), HashAlgorithmName, RSASignaturePadding);
             }
-            catch (System.Security.Cryptography.CryptographicException inner)
-            {
-                LogHelper.LogExceptionMessage(new InvalidOperationException($"{GetType()}.SignWithRsa, RSA.GetType: '{RSA.GetType()}' threw, inner", inner));
-                Thread.Sleep(10);
-                try
-                {
-                    return RSA.SignHash(HashAlgorithm.ComputeHash(bytes), HashAlgorithmName, RSASignaturePadding);
-                }
-                catch (System.Security.Cryptography.CryptographicException inner2)
-                {
-                    throw LogHelper.LogExceptionMessage(new InvalidOperationException($"{GetType()}.SignWithRsa, RSA.GetType: '{RSA.GetType()}' threw, (Thread.Sleep(10)). inner", inner2));
-                }
-            }
+            //catch (System.Security.Cryptography.CryptographicException inner)
+            //{
+            //    LogHelper.LogExceptionMessage(new InvalidOperationException($"{GetType()}.SignWithRsa, RSA.GetType: '{RSA.GetType()}' threw, inner", inner));
+            //    Thread.Sleep(10);
+            //    try
+            //    {
+            //        return RSA.SignHash(HashAlgorithm.ComputeHash(bytes), HashAlgorithmName, RSASignaturePadding);
+            //    }
+            //    catch (System.Security.Cryptography.CryptographicException inner2)
+            //    {
+            //        throw LogHelper.LogExceptionMessage(new InvalidOperationException($"{GetType()}.SignWithRsa, RSA.GetType: '{RSA.GetType()}' threw, (Thread.Sleep(10)). inner", inner2));
+            //    }
+            //}
         }
 #endif
 
 #if DESKTOP
         internal byte[] SignWithRsaCryptoServiceProviderProxy(byte[] bytes)
         {
-            try
+//            try
             {
                 return RsaCryptoServiceProviderProxy.SignData(bytes, HashAlgorithm);
             }
-            catch(System.Security.Cryptography.CryptographicException inner)
-            {
-                LogHelper.LogExceptionMessage(new InvalidOperationException($"{GetType()}.SignWithRsaCryptoServiceProviderProxy threw, see inner", inner));
-                Thread.Sleep(10);
-                try
-                {
-                    return RsaCryptoServiceProviderProxy.SignData(bytes, HashAlgorithm);
-                }
-                catch (System.Security.Cryptography.CryptographicException inner2)
-                {
-                    throw LogHelper.LogExceptionMessage(new InvalidOperationException($"{GetType()}.SignWithRsaCryptoServiceProviderProxy threw, see inner", inner2));
-                }
-            }
+            //catch(System.Security.Cryptography.CryptographicException inner)
+            //{
+            //    LogHelper.LogExceptionMessage(new InvalidOperationException($"{GetType()}.SignWithRsaCryptoServiceProviderProxy threw, see inner", inner));
+            //    Thread.Sleep(10);
+            //    try
+            //    {
+            //        return RsaCryptoServiceProviderProxy.SignData(bytes, HashAlgorithm);
+            //    }
+            //    catch (System.Security.Cryptography.CryptographicException inner2)
+            //    {
+            //        throw LogHelper.LogExceptionMessage(new InvalidOperationException($"{GetType()}.SignWithRsaCryptoServiceProviderProxy threw, see inner", inner2));
+            //    }
+            //}
         }
 #endif
 
