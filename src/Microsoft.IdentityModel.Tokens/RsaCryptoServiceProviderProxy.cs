@@ -193,15 +193,7 @@ namespace Microsoft.IdentityModel.Tokens
             if (hash == null)
                 throw LogHelper.LogArgumentNullException(nameof(hash));
 
-            try
-            {
-                return _rsa.SignData(input, hash);
-            }
-            catch (System.Security.Cryptography.CryptographicException)
-            {
-                Thread.Sleep(10);
-                return _rsa.SignData(input, hash);
-            }
+            return _rsa.SignData(input, hash);
         }
 
         /// <summary>
