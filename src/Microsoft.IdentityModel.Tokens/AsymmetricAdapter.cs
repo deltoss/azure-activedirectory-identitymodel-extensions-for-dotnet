@@ -348,7 +348,7 @@ namespace Microsoft.IdentityModel.Tokens
                 if (IdentityModelEventSource.Logger.LogLevel == System.Diagnostics.Tracing.EventLevel.Verbose)
                     IdentityModelEventSource.Logger.WriteVerbose(LogHelper.FormatInvariant($"{this}.SignWithRsa."));
                 else if (IdentityModelEventSource.Logger.LogLevel == System.Diagnostics.Tracing.EventLevel.Informational)
-                    IdentityModelEventSource.Logger.WriteVerbose(LogHelper.FormatInvariant($"SignWithRsa."));
+                    IdentityModelEventSource.Logger.WriteInformation(LogHelper.FormatInvariant($"SignWithRsa."));
             }
 
             try
@@ -379,7 +379,7 @@ namespace Microsoft.IdentityModel.Tokens
                 if (IdentityModelEventSource.Logger.LogLevel == System.Diagnostics.Tracing.EventLevel.Verbose)
                     IdentityModelEventSource.Logger.WriteVerbose(LogHelper.FormatInvariant($"{this}.SignWithRsaCryptoServiceProviderProxy."));
                 else if (IdentityModelEventSource.Logger.LogLevel == System.Diagnostics.Tracing.EventLevel.Informational)
-                    IdentityModelEventSource.Logger.WriteVerbose(LogHelper.FormatInvariant($"SignWithRsaCryptoServiceProviderProxy."));
+                    IdentityModelEventSource.Logger.WriteInformation(LogHelper.FormatInvariant($"SignWithRsaCryptoServiceProviderProxy."));
             }
 
             try
