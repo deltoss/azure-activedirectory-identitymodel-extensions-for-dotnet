@@ -94,6 +94,7 @@ namespace Microsoft.IdentityModel.Tokens
         internal AsymmetricAdapter(SecurityKey key, string algorithm, HashAlgorithm hashAlgorithm, bool requirePrivateKey)
         {
             HashAlgorithm = hashAlgorithm;
+            RequirePrivateKey = requirePrivateKey;
 
             // RsaSecurityKey has either Rsa OR RsaParameters.
             // If we use the RsaParameters, we create a new RSA object and will need to dispose.
@@ -330,6 +331,8 @@ namespace Microsoft.IdentityModel.Tokens
         private RSACryptoServiceProviderProxy RsaCryptoServiceProviderProxy { get; set; }
 #endif
 
+        private bool RequirePrivateKey { get; set; }
+
         internal byte[] Sign(byte[] bytes)
         {
             return SignatureFunction(bytes);
@@ -361,6 +364,11 @@ namespace Microsoft.IdentityModel.Tokens
                 Thread.Sleep(10);
                 try
                 {
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                    var rsa = RSA.Create();
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                    rsa.ImportParameters(RSA.ExportParameters(RequirePrivateKey));
+                    RSA = rsa;
                     return RSA.SignHash(HashAlgorithm.ComputeHash(bytes), HashAlgorithmName, RSASignaturePadding);
                 }
                 catch (System.Security.Cryptography.CryptographicException inner2)
@@ -392,6 +400,10 @@ namespace Microsoft.IdentityModel.Tokens
                 Thread.Sleep(10);
                 try
                 {
+                    RSACryptoServiceProvider rsaCryptoServiceProvider = new RSACryptoServiceProvider();
+                    rsaCryptoServiceProvider.ImportParameters(RsaCryptoServiceProviderProxy.ExportParameters(RequirePrivateKey));
+                    RSACryptoServiceProviderProxy rsaCryptoServiceProviderProxy = new RSACryptoServiceProviderProxy(rsaCryptoServiceProvider);
+                    RsaCryptoServiceProviderProxy = rsaCryptoServiceProviderProxy;
                     return RsaCryptoServiceProviderProxy.SignData(bytes, HashAlgorithm);
                 }
                 catch (System.Security.Cryptography.CryptographicException inner2)
