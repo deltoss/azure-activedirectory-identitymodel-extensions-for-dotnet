@@ -28,6 +28,7 @@
 using System;
 using System.Diagnostics.Tracing;
 using System.IO;
+using System.Text;
 
 namespace Microsoft.IdentityModel.Logging
 {
@@ -37,7 +38,11 @@ namespace Microsoft.IdentityModel.Logging
     public class TextWriterEventListener : EventListener
     {
         private StreamWriter _streamWriter;
+        private object _streamLock = new object();
         private bool _disposeStreamWriter = true;
+        private int _numberOfEventsToCache = 1000;
+        private int _numberCached = 0;
+        private StringBuilder _cachedEvents = new StringBuilder();
 
         /// <summary>
         /// Name of the default log file, excluding its path.
@@ -98,23 +103,39 @@ namespace Microsoft.IdentityModel.Logging
         }
 
         /// <summary>
+        /// Call to flush out any unwritten events.
+        /// </summary>
+        public void Flush()
+        {
+            _streamWriter.WriteLine(_cachedEvents.ToString());
+            _cachedEvents.Clear();
+        }
+
+        /// <summary>
         /// Called whenever an event has been written by an event source for which the event listener has enabled events.
         /// </summary>
         /// <param name="eventData"><see cref="EventWrittenEventArgs"/></param>
         protected override void OnEventWritten(EventWrittenEventArgs eventData)
         {
-            if (eventData == null)
-                throw LogHelper.LogArgumentNullException("eventData");
-
-            if (eventData.Payload == null || eventData.Payload.Count <= 0)
-            {
-                LogHelper.LogInformation(LogMessages.MIML10000);
+            if (eventData == null || eventData.Payload == null || eventData.Payload.Count <= 0)
                 return;
-            }
 
-            for (int i = 0; i < eventData.Payload.Count; i++)
+            System.Threading.Interlocked.Increment(ref _numberCached);
+            if (_numberCached > _numberOfEventsToCache)
             {
-                _streamWriter.WriteLine(eventData.Payload[i].ToString());
+                lock (_streamLock)
+                {
+                    _numberCached = 0;
+                    _streamWriter.WriteLine(_cachedEvents.ToString());
+                    _cachedEvents.Clear();
+                }
+            }
+            else
+            {
+                for (int i = 0; i < eventData.Payload.Count; i++)
+                {
+                    _cachedEvents.AppendLine(eventData.Payload[i].ToString());
+                }
             }
         }
 
