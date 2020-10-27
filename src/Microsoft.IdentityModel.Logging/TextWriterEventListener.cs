@@ -108,6 +108,7 @@ namespace Microsoft.IdentityModel.Logging
         public void Flush()
         {
             _streamWriter.WriteLine(_cachedEvents.ToString());
+            _streamWriter.Flush();
             _cachedEvents.Clear();
         }
 
