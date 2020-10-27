@@ -361,7 +361,7 @@ namespace Microsoft.IdentityModel.Tokens
             catch (System.Security.Cryptography.CryptographicException inner)
             {
                 LogHelper.LogExceptionMessage(new InvalidOperationException($"{GetType()}.SignWithRsa, RSA.GetType: '{RSA.GetType()}' threw, inner", inner));
-                Thread.Sleep(10);
+                Thread.Sleep(100);
                 try
                 {
 #pragma warning disable CA2000 // Dispose objects before losing scope
@@ -397,7 +397,7 @@ namespace Microsoft.IdentityModel.Tokens
             catch (System.Security.Cryptography.CryptographicException inner)
             {
                 LogHelper.LogExceptionMessage(new InvalidOperationException($"{GetType()}.SignWithRsaCryptoServiceProviderProxy threw, see inner", inner));
-                Thread.Sleep(10);
+                Thread.Sleep(100);
                 try
                 {
                     RSACryptoServiceProvider rsaCryptoServiceProvider = new RSACryptoServiceProvider();
