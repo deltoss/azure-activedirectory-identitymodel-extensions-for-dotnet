@@ -52,12 +52,14 @@ namespace Microsoft.IdentityModel.Tokens
         /// </exception>
         internal ECDsaAdapter()
         {
-#if NETSTANDARD2_0
+#if NET472
+            CreateECDsaFunction = CreateECDsaUsingECParams;
+#elif NETSTANDARD2_0
             if (SupportsECParameters())
                 CreateECDsaFunction = CreateECDsaUsingECParams;
             else
                 CreateECDsaFunction = CreateECDsaUsingCNGKey;
-#elif DESKTOP
+#else
             CreateECDsaFunction = CreateECDsaUsingCNGKey;
 #endif
         }
@@ -70,6 +72,7 @@ namespace Microsoft.IdentityModel.Tokens
             return CreateECDsaFunction(jsonWebKey, usePrivateKey);
         }
 
+#if NET45 || NET461 || NETSTANDARD2_0
         /// <summary>
         /// Creates an ECDsa object using the <paramref name="jsonWebKey"/> and <paramref name="usePrivateKey"/>.
         /// 'ECParameters' structure is available in .NET Framework 4.7+, .NET Standard 1.6+, and .NET Core 1.0+.
@@ -165,6 +168,7 @@ namespace Microsoft.IdentityModel.Tokens
                     keyBlobHandle.Free();
             }
         }
+#endif
 
         internal static ECDsa ECDsaNotSupported(JsonWebKey jsonWebKey, bool usePrivateKey)
         {
@@ -271,7 +275,7 @@ namespace Microsoft.IdentityModel.Tokens
             }
         }
 
-#if NETSTANDARD2_0
+#if NET472 || NETSTANDARD2_0
         /// <summary>
         /// Creates an ECDsa object using the <paramref name="jsonWebKey"/> and <paramref name="usePrivateKey"/>.
         /// 'ECParameters' structure is available in .NET Framework 4.7+, .NET Standard 1.6+, and .NET Core 1.0+.
