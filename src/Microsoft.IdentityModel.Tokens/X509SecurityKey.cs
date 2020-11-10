@@ -179,7 +179,6 @@ namespace Microsoft.IdentityModel.Tokens
 
         internal override string InternalId => X5t;
 
-
         /// <summary>
         /// Determines whether the <see cref="X509SecurityKey"/> can compute a JWK thumbprint.
         /// </summary>
@@ -197,6 +196,9 @@ namespace Microsoft.IdentityModel.Tokens
         /// <remarks>https://tools.ietf.org/html/rfc7638</remarks>
         public override byte[] ComputeJwkThumbprint()
         {
+            // TODO - brentsch - create without a new RsaSecurityKey.
+            // move code to create JwkThumbprint into a common location.
+            // this could throw if public key is not RSA.
             return new RsaSecurityKey(PublicKey as RSA).ComputeJwkThumbprint();
         }
 

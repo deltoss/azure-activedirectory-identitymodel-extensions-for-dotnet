@@ -79,7 +79,7 @@ namespace Microsoft.IdentityModel.Tokens
             return GetCacheKeyPrivate(securityKey, algorithm, typeofProvider);
         }
 
-        private static string GetCacheKeyPrivate(SecurityKey securityKey, string algorithm, string typeofProvider)
+        internal static string GetCacheKeyPrivate(SecurityKey securityKey, string algorithm, string typeofProvider)
         {
             return string.Format(CultureInfo.InvariantCulture,
                                  "{0}-{1}-{2}-{3}",

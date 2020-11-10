@@ -419,6 +419,7 @@ namespace Microsoft.IdentityModel.Tokens
             if (string.IsNullOrEmpty(Y))
                 throw LogHelper.LogExceptionMessage(new ArgumentException(LogHelper.FormatInvariant(LogMessages.IDX10705, nameof(Y)), nameof(Y)));
 
+            // TODO - brentsch is this the same value as ECDsaSecurityKey.ComputeJwkThumbprint? Should it be?
             var canonicalJwk = $@"{{""{JsonWebKeyParameterNames.Crv}"":""{Crv}"",""{JsonWebKeyParameterNames.Kty}"":""{Kty}"",""{JsonWebKeyParameterNames.X}"":""{X}"",""{JsonWebKeyParameterNames.Y}"":""{Y}""}}";
             return Utility.GenerateSha256Hash(canonicalJwk);
         }
