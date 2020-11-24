@@ -26,9 +26,16 @@
 //------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Concurrent;
 using System.Globalization;
 using Microsoft.IdentityModel.Logging;
+using Microsoft.IdentityModel.Json.Utilities;
+#if NETSTANDARD2_0 || NET461
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
+#elif NET45
+using System.Runtime.Caching;
+using System.Runtime.Caching.Configuration;
+#endif
 
 namespace Microsoft.IdentityModel.Tokens
 {
@@ -38,8 +45,8 @@ namespace Microsoft.IdentityModel.Tokens
     /// </summary>
     public class InMemoryCryptoProviderCache : CryptoProviderCache
     {
-        private ConcurrentDictionary<string, SignatureProvider> _signingSignatureProviders = new ConcurrentDictionary<string, SignatureProvider>();
-        private ConcurrentDictionary<string, SignatureProvider> _verifyingSignatureProviders = new ConcurrentDictionary<string, SignatureProvider>();
+        private MemoryCache _signingSignatureProviders = new MemoryCache(new MemoryCacheOptions());
+        private MemoryCache _verifyingSignatureProviders = new MemoryCache(new MemoryCacheOptions());
 
         /// <summary>
         /// Returns the cache key to use when looking up an entry into the cache for a <see cref="SignatureProvider" />
@@ -163,9 +170,23 @@ namespace Microsoft.IdentityModel.Tokens
 
             var cacheKey = GetCacheKeyPrivate(securityKey, algorithm, typeofProvider);
             if (willCreateSignatures)
+            {
+#if NETSTANDARD2_0 || NET461
                 return _signingSignatureProviders.TryGetValue(cacheKey, out signatureProvider);
+#elif NET45
+                signatureProvider = _signingSignatureProviders.Get(cacheKey) as SignatureProvider;
+                return signatureProvider != null;
+#endif  
+            }
             else
+            {
+#if NETSTANDARD2_0 || NET461
                 return _verifyingSignatureProviders.TryGetValue(cacheKey, out signatureProvider);
+#elif NET45
+                signatureProvider = _verifyingSignatureProviders.Get(cacheKey) as SignatureProvider;
+                return signatureProvider != null;
+#endif  
+            }
         }
 
         /// <summary>
@@ -184,24 +205,20 @@ namespace Microsoft.IdentityModel.Tokens
                 return false;
 
             var cacheKey = GetCacheKey(signatureProvider);
-            if (signatureProvider.WillCreateSignatures)
-            {
-                if (_signingSignatureProviders.TryRemove(cacheKey, out SignatureProvider provider))
-                {
-                    provider.CryptoProviderCache = null;
-                    return true;
-                }
-            }
-            else
-            {
-                if (_verifyingSignatureProviders.TryRemove(cacheKey, out SignatureProvider provider))
-                {
-                    provider.CryptoProviderCache = null;
-                    return true;
-                }
-            }
 
-            return false;
+            try
+            {
+                if (signatureProvider.WillCreateSignatures)
+                    _signingSignatureProviders.Remove(cacheKey);
+                else
+                    _verifyingSignatureProviders.Remove(cacheKey);
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }
