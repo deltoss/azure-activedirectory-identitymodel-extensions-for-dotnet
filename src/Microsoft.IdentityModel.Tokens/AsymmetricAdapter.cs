@@ -169,7 +169,7 @@ namespace Microsoft.IdentityModel.Tokens
                 return RSA.DecryptValue(data);
 #endif
 
-            // NET461 could have been passed RSACryptoServiceProvider
+            // NET461 or NET472 could have been passed RSACryptoServiceProvider.
 #if NET461 || NET472
             if (RsaCryptoServiceProviderProxy != null)
                 return RsaCryptoServiceProviderProxy.Decrypt(data, _useRSAOeapPadding);
@@ -227,7 +227,7 @@ namespace Microsoft.IdentityModel.Tokens
                 return RSA.EncryptValue(data);
 #endif
 
-            // NET461 could have been passed RSACryptoServiceProvider
+            // NET461 or NET472 could have been passed RSACryptoServiceProvider
 #if NET461 || NET472
             if (RsaCryptoServiceProviderProxy != null)
                 return RsaCryptoServiceProviderProxy.Encrypt(data, _useRSAOeapPadding);

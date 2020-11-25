@@ -199,7 +199,7 @@ namespace Microsoft.IdentityModel.Tokens.Tests
                         TestId = nameof(KeyingMaterial.JsonWebKeyRsa_2048_Public)
                     },
 #if NET472 || NET_CORE
-                    // EcdsaSecurityKey should have InternalId set to its jwk thumbprint on core.
+                    // EcdsaSecurityKey should have InternalId set to its jwk thumbprint on NET472 and NET_CORE.
                     new SecurityKeyTheoryData
                     {
                         SecurityKey = KeyingMaterial.Ecdsa256Key_Public,
@@ -213,7 +213,7 @@ namespace Microsoft.IdentityModel.Tokens.Tests
                         TestId = nameof(KeyingMaterial.Ecdsa256Key)
                     },
 #else
-                    // EcdsaSecurityKey should have InternalId set to an empty string on desktop.
+                    // EcdsaSecurityKey should have InternalId set to an empty string on NET452 and NET461.
                     new SecurityKeyTheoryData
                     {
                         SecurityKey = KeyingMaterial.Ecdsa256Key_Public,

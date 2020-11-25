@@ -363,6 +363,9 @@ namespace Microsoft.IdentityModel.Tokens
         /// <returns>True if <see cref="ECParameters"/> structure is supported, false otherwise.</returns>
         internal static bool SupportsECParameters()
         {
+#if NET472
+            return true;
+#else
             try
             {
                 LoadECParametersType();
@@ -372,6 +375,7 @@ namespace Microsoft.IdentityModel.Tokens
             {
                 return false;
             }
+#endif
         }
 
         /// <summary>
