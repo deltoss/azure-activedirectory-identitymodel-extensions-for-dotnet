@@ -28,7 +28,6 @@
 using System;
 using System.Globalization;
 using Microsoft.IdentityModel.Logging;
-using Microsoft.IdentityModel.Json.Utilities;
 #if NETSTANDARD2_0 || NET461
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
@@ -43,10 +42,16 @@ namespace Microsoft.IdentityModel.Tokens
     /// Defines a cache for crypto providers.
     /// Current support is limited to <see cref="SignatureProvider"/> only.
     /// </summary>
-    public class InMemoryCryptoProviderCache : CryptoProviderCache
+    public class InMemoryCryptoProviderCache : CryptoProviderCache, IDisposable
     {
+#if NET461 || NETSTANDARD2_0
         private MemoryCache _signingSignatureProviders = new MemoryCache(new MemoryCacheOptions());
         private MemoryCache _verifyingSignatureProviders = new MemoryCache(new MemoryCacheOptions());
+#elif NET45
+        private MemoryCache _signingSignatureProviders = new MemoryCache("SigningSignatureProviders");
+        private MemoryCache _verifyingSignatureProviders = new MemoryCache("VerifyingSignatureProviders");
+#endif
+        private bool _disposed = false;
 
         /// <summary>
         /// Returns the cache key to use when looking up an entry into the cache for a <see cref="SignatureProvider" />
@@ -127,19 +132,65 @@ namespace Microsoft.IdentityModel.Tokens
             var cacheKey = GetCacheKey(signatureProvider);
             if (signatureProvider.WillCreateSignatures)
             {
-                if (_signingSignatureProviders.TryAdd(cacheKey, signatureProvider))
+#if NET461 || NETSTANDARD2_0
+                var cacheEntryOptions = new MemoryCacheEntryOptions
+                { 
+                    SlidingExpiration = TimeSpan.FromDays(1),
+                    Size = 1,
+                };
+
+                // The cache does NOT already have a crypto provider associated with this key.
+                if (!_signingSignatureProviders.TryGetValue(cacheKey, out _))
                 {
+                    _signingSignatureProviders.Set(cacheKey, signatureProvider, cacheEntryOptions);
                     signatureProvider.CryptoProviderCache = this;
                     return true;
                 }
+#elif NET45
+                var policy = new CacheItemPolicy
+                {
+                    SlidingExpiration = TimeSpan.FromDays(1)
+                };
+
+                // The cache does NOT already have a crypto provider associated with this key.
+                if (!_signingSignatureProviders.Contains(cacheKey))
+                {
+                    _signingSignatureProviders.Set(cacheKey, signatureProvider, policy);
+                    signatureProvider.CryptoProviderCache = this;
+                    return true;
+                }
+#endif
             }
             else
             {
-                if (_verifyingSignatureProviders.TryAdd(cacheKey, signatureProvider))
+#if NET461 || NETSTANDARD2_0
+                var cacheEntryOptions = new MemoryCacheEntryOptions
+                { 
+                    SlidingExpiration = TimeSpan.FromDays(1),
+                    Size = 1,
+                };
+
+                // The cache does NOT already have a crypto provider associated with this key.
+                if (!_verifyingSignatureProviders.TryGetValue(cacheKey, out _))
                 {
+                    _verifyingSignatureProviders.Set(cacheKey, signatureProvider, cacheEntryOptions);
                     signatureProvider.CryptoProviderCache = this;
                     return true;
                 }
+#elif NET45
+                var policy = new CacheItemPolicy
+                {
+                    SlidingExpiration = TimeSpan.FromDays(1)
+                };
+
+                // The cache does NOT already have a crypto provider associated with this key.
+                if (!_verifyingSignatureProviders.Contains(cacheKey))
+                {
+                    _verifyingSignatureProviders.Set(cacheKey, signatureProvider, policy);
+                    signatureProvider.CryptoProviderCache = this;
+                    return true;
+                }
+#endif
             }
 
             return false;
@@ -176,7 +227,7 @@ namespace Microsoft.IdentityModel.Tokens
 #elif NET45
                 signatureProvider = _signingSignatureProviders.Get(cacheKey) as SignatureProvider;
                 return signatureProvider != null;
-#endif  
+#endif
             }
             else
             {
@@ -185,7 +236,7 @@ namespace Microsoft.IdentityModel.Tokens
 #elif NET45
                 signatureProvider = _verifyingSignatureProviders.Get(cacheKey) as SignatureProvider;
                 return signatureProvider != null;
-#endif  
+#endif
             }
         }
 
@@ -218,6 +269,34 @@ namespace Microsoft.IdentityModel.Tokens
             catch
             {
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Calls <see cref="Dispose(bool)"/> and <see cref="GC.SuppressFinalize"/>
+        /// </summary>
+        public void Dispose()
+        {
+            // Dispose of unmanaged resources.
+            Dispose(true);
+            // Suppress finalization.
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// If <paramref name="disposing"/> is true, this method disposes of <see cref="_signingSignatureProviders"/> and <see cref="_verifyingSignatureProviders"/>.
+        /// </summary>
+        /// <param name="disposing">True if called from the <see cref="Dispose()"/> method, false otherwise.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                _disposed = true;
+                if (disposing)
+                {
+                    _signingSignatureProviders.Dispose();
+                    _verifyingSignatureProviders.Dispose();
+                }
             }
         }
     }
