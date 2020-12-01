@@ -130,68 +130,41 @@ namespace Microsoft.IdentityModel.Tokens
                 return false;
 
             var cacheKey = GetCacheKey(signatureProvider);
+            MemoryCache signatureProviderCache;
+            // Determine if we are caching a signing or a verifying SignatureProvider.
             if (signatureProvider.WillCreateSignatures)
-            {
-#if NET461 || NETSTANDARD2_0
-                var cacheEntryOptions = new MemoryCacheEntryOptions
-                { 
-                    SlidingExpiration = TimeSpan.FromDays(1),
-                    Size = 1,
-                };
-
-                // The cache does NOT already have a crypto provider associated with this key.
-                if (!_signingSignatureProviders.TryGetValue(cacheKey, out _))
-                {
-                    _signingSignatureProviders.Set(cacheKey, signatureProvider, cacheEntryOptions);
-                    signatureProvider.CryptoProviderCache = this;
-                    return true;
-                }
-#elif NET45
-                var policy = new CacheItemPolicy
-                {
-                    SlidingExpiration = TimeSpan.FromDays(1)
-                };
-
-                // The cache does NOT already have a crypto provider associated with this key.
-                if (!_signingSignatureProviders.Contains(cacheKey))
-                {
-                    _signingSignatureProviders.Set(cacheKey, signatureProvider, policy);
-                    signatureProvider.CryptoProviderCache = this;
-                    return true;
-                }
-#endif
-            }
+                signatureProviderCache = _signingSignatureProviders;
             else
-            {
+                signatureProviderCache = _verifyingSignatureProviders;
+
 #if NET461 || NETSTANDARD2_0
-                var cacheEntryOptions = new MemoryCacheEntryOptions
-                { 
-                    SlidingExpiration = TimeSpan.FromDays(1),
-                    Size = 1,
-                };
+            var cacheEntryOptions = new MemoryCacheEntryOptions
+            {
+                SlidingExpiration = TimeSpan.FromDays(1),
+                Size = 1,
+            };
 
-                // The cache does NOT already have a crypto provider associated with this key.
-                if (!_verifyingSignatureProviders.TryGetValue(cacheKey, out _))
-                {
-                    _verifyingSignatureProviders.Set(cacheKey, signatureProvider, cacheEntryOptions);
-                    signatureProvider.CryptoProviderCache = this;
-                    return true;
-                }
-#elif NET45
-                var policy = new CacheItemPolicy
-                {
-                    SlidingExpiration = TimeSpan.FromDays(1)
-                };
-
-                // The cache does NOT already have a crypto provider associated with this key.
-                if (!_verifyingSignatureProviders.Contains(cacheKey))
-                {
-                    _verifyingSignatureProviders.Set(cacheKey, signatureProvider, policy);
-                    signatureProvider.CryptoProviderCache = this;
-                    return true;
-                }
-#endif
+            // The cache does NOT already have a crypto provider associated with this key.
+            if (!signatureProviderCache.TryGetValue(cacheKey, out _))
+            {
+                signatureProviderCache.Set(cacheKey, signatureProvider, cacheEntryOptions);
+                signatureProvider.CryptoProviderCache = this;
+                return true;
             }
+#elif NET45
+            var policy = new CacheItemPolicy
+            {
+                SlidingExpiration = TimeSpan.FromDays(1)
+            };
+
+            // The cache does NOT already have a crypto provider associated with this key.
+            if (!signatureProviderCache.Contains(cacheKey))
+            {
+                signatureProviderCache.Set(cacheKey, signatureProvider, policy);
+                signatureProvider.CryptoProviderCache = this;
+                return true;
+            }
+#endif
 
             return false;
         }
@@ -256,41 +229,28 @@ namespace Microsoft.IdentityModel.Tokens
                 return false;
 
             var cacheKey = GetCacheKey(signatureProvider);
+            MemoryCache signatureProviderCache;
+            // Determine if we are caching a signing or a verifying SignatureProvider.
+            if (signatureProvider.WillCreateSignatures)
+                signatureProviderCache = _signingSignatureProviders;
+            else
+                signatureProviderCache = _verifyingSignatureProviders;
 
             try
             {
-                if (signatureProvider.WillCreateSignatures)
-                {
 #if NET45
-                    return _signingSignatureProviders.Remove(cacheKey) != null;
+                return signatureProviderCache.Remove(cacheKey) != null;
 #elif NET461 || NETSTANDARD2_0
-                    if (_signingSignatureProviders.TryGetValue(cacheKey, out _))
-                    {
-                        _signingSignatureProviders.Remove(cacheKey);
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-#endif
+                if (signatureProviderCache.TryGetValue(cacheKey, out _))
+                {
+                    signatureProviderCache.Remove(cacheKey);
+                    return true;
                 }
                 else
                 {
-#if NET45
-                    return _verifyingSignatureProviders.Remove(cacheKey) != null;
-#elif NET461 || NETSTANDARD2_0
-                    if (_verifyingSignatureProviders.TryGetValue(cacheKey, out _))
-                    {
-                        _verifyingSignatureProviders.Remove(cacheKey);
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-#endif
+                    return false;
                 }
+#endif
             }
             catch
             {
