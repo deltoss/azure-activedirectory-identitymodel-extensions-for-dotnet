@@ -260,11 +260,37 @@ namespace Microsoft.IdentityModel.Tokens
             try
             {
                 if (signatureProvider.WillCreateSignatures)
-                    _signingSignatureProviders.Remove(cacheKey);
+                {
+#if NET45
+                    return _signingSignatureProviders.Remove(cacheKey) != null;
+#elif NET461 || NETSTANDARD2_0
+                    if (_signingSignatureProviders.TryGetValue(cacheKey, out _))
+                    {
+                        _signingSignatureProviders.Remove(cacheKey);
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+#endif
+                }
                 else
-                    _verifyingSignatureProviders.Remove(cacheKey);
-
-                return true;
+                {
+#if NET45
+                    return _verifyingSignatureProviders.Remove(cacheKey) != null;
+#elif NET461 || NETSTANDARD2_0
+                    if (_verifyingSignatureProviders.TryGetValue(cacheKey, out _))
+                    {
+                        _verifyingSignatureProviders.Remove(cacheKey);
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+#endif
+                }
             }
             catch
             {
